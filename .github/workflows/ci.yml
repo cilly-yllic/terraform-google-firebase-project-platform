@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  terraform:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.12.x"
+
+      - name: terraform fmt -check
+        run: terraform fmt -check -recursive
+
+      - name: terraform init (root)
+        run: terraform init -backend=false
+
+      - name: terraform validate (root)
+        run: terraform validate
+
+      - name: terraform init (examples/minimal)
+        working-directory: examples/minimal
+        run: terraform init -backend=false
+
+      - name: terraform validate (examples/minimal)
+        working-directory: examples/minimal
+        run: terraform validate
+
+      - name: terraform init (examples/full)
+        working-directory: examples/full
+        run: terraform init -backend=false
+
+      - name: terraform validate (examples/full)
+        working-directory: examples/full
+        run: terraform validate
+
+  action-dispatch:
+    name: Action Dispatch – Lint & Build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: actions/dispatch
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: npm ci
+        run: npm ci
+
+      - name: tsc --noEmit
+        run: npx tsc --noEmit
+
+      - name: ncc build
+        run: npm run build
+
+      - name: dist/ up to date
+        run: git diff --exit-code dist/
