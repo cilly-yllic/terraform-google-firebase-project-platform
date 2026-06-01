@@ -156,6 +156,72 @@ cloud-run-router は TFC notification が設定されていない限り呼ばれ
 
 ---
 
+## Submodule classification
+
+| Category | Submodule | Resources created |
+|----------|-----------|-------------------|
+| Resource-creating | `firebase` | `google_firebase_project` |
+| Resource-creating | `auth` | `google_identity_platform_config` |
+| Resource-creating | `firestore` | `google_firestore_database`, `google_firebaserules_ruleset/release` |
+| Resource-creating | `rtdb` | `google_firebase_database_instance` |
+| Resource-creating | `storage` | `google_firebase_storage_bucket`, `google_storage_bucket`, `google_storage_bucket_iam_member`, `google_firebaserules_ruleset/release` |
+| Resource-creating | `hosting` | `google_firebase_web_app`, `google_firebase_hosting_site` |
+| Resource-creating | `app-hosting` | `google_firebase_app_hosting_backend`, `google_service_account`, `google_project_iam_member` |
+| Resource-creating | `data-connect` | `google_firebase_data_connect_service`, `google_sql_database_instance`, `google_sql_database` |
+| API placeholder | `fcm`, `remote-config`, `app-check`, `crashlytics`, `performance`, `analytics`, `extensions` | None (API enablement only) |
+| API placeholder | `secret-manager`, `cloud-tasks`, `cloud-scheduler`, `pubsub`, `eventarc` | None (API enablement only) |
+| Cross-cutting | `iam` | `google_project_iam_member`, `google_service_account` |
+
+**API placeholder** submodules currently enable the corresponding API only. They serve as extension points for future resource management (e.g. Remote Config templates, App Check providers).
+
+<details><summary>Ja</summary>
+
+| 分類 | サブモジュール | 作成されるリソース |
+|------|---------------|-------------------|
+| リソース作成型 | `firebase` | `google_firebase_project` |
+| リソース作成型 | `auth` | `google_identity_platform_config` |
+| リソース作成型 | `firestore` | `google_firestore_database`, `google_firebaserules_ruleset/release` |
+| リソース作成型 | `rtdb` | `google_firebase_database_instance` |
+| リソース作成型 | `storage` | `google_firebase_storage_bucket`, `google_storage_bucket`, `google_storage_bucket_iam_member`, `google_firebaserules_ruleset/release` |
+| リソース作成型 | `hosting` | `google_firebase_web_app`, `google_firebase_hosting_site` |
+| リソース作成型 | `app-hosting` | `google_firebase_app_hosting_backend`, `google_service_account`, `google_project_iam_member` |
+| リソース作成型 | `data-connect` | `google_firebase_data_connect_service`, `google_sql_database_instance`, `google_sql_database` |
+| API有効化のみ | `fcm`, `remote-config`, `app-check`, `crashlytics`, `performance`, `analytics`, `extensions` | なし (API 有効化のみ) |
+| API有効化のみ | `secret-manager`, `cloud-tasks`, `cloud-scheduler`, `pubsub`, `eventarc` | なし (API 有効化のみ) |
+| 横断型 | `iam` | `google_project_iam_member`, `google_service_account` |
+
+**API有効化のみ** のサブモジュールは現時点では対応 API を有効化するのみ。将来的なリソース管理 (Remote Config テンプレート、App Check プロバイダ等) の拡張ポイントとして機能する。
+
+</details>
+
+---
+
+## Upstream spec correspondence
+
+| Upstream spec | Mapping in this repo |
+|---|---|
+| [03 — firebase-project-platform spec v2](https://github.com/cilly-yllic/terraform-gcp-project-factory/blob/main/03-terraform-google-firebase-project-platform-spec-v2.md) | Module body (`main.tf`, `variables.tf`, `outputs.tf`, `modules/`) |
+| [05 — Phase 2 webhook architecture](https://github.com/cilly-yllic/terraform-gcp-project-factory/blob/main/05-phase2-webhook-architecture-spec-v1.md) | `cloud-run-router/` |
+| [06 — Public Actions spec](https://github.com/cilly-yllic/terraform-gcp-project-factory/blob/main/06-public-actions-spec-v1.md) | `actions/dispatch/` (Action B) |
+| [terraform-firebase-platform-architecture](https://github.com/cilly-yllic/terraform-gcp-project-factory/blob/main/terraform-firebase-platform-architecture.md) | Overall architecture reference |
+
+Full index with descriptions: [upstream-spec-links.md](./upstream-spec-links.md).
+
+<details><summary>Ja</summary>
+
+| 上流 spec | 本リポジトリでの対応 |
+|---|---|
+| [03 — firebase-project-platform spec v2](https://github.com/cilly-yllic/terraform-gcp-project-factory/blob/main/03-terraform-google-firebase-project-platform-spec-v2.md) | Module 本体 (`main.tf`, `variables.tf`, `outputs.tf`, `modules/`) |
+| [05 — Phase 2 webhook architecture](https://github.com/cilly-yllic/terraform-gcp-project-factory/blob/main/05-phase2-webhook-architecture-spec-v1.md) | `cloud-run-router/` |
+| [06 — Public Actions spec](https://github.com/cilly-yllic/terraform-gcp-project-factory/blob/main/06-public-actions-spec-v1.md) | `actions/dispatch/` (Action B) |
+| [terraform-firebase-platform-architecture](https://github.com/cilly-yllic/terraform-gcp-project-factory/blob/main/terraform-firebase-platform-architecture.md) | 全体アーキテクチャの参照元 |
+
+詳細な説明付きインデックス: [upstream-spec-links.md](./upstream-spec-links.md)。
+
+</details>
+
+---
+
 ## API auto-enablement
 
 To avoid making callers enumerate `google_project_service` individually, the module decides which APIs to enable from the feature flags.

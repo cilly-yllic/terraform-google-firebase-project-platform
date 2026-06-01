@@ -4,9 +4,13 @@ A **reference implementation** of a Cloud Run service that receives Terraform Cl
 
 The core component of the Phase 2 (webhook-driven) architecture. For its position in the overall architecture, see [`docs/architecture.md`](../docs/architecture.md).
 
+> **Upstream spec**: [05 — Phase 2 webhook-driven architecture spec v1](https://github.com/cilly-yllic/terraform-gcp-project-factory/blob/main/05-phase2-webhook-architecture-spec-v1.md)
+
 <details><summary>Ja</summary>
 
 TFC (Terraform Cloud) Run completion notification を受信し、GitHub `repository_dispatch` を発火する Cloud Run service の **reference implementation**。
+
+> **上流 spec**: [05 — Phase 2 webhook-driven architecture spec v1](https://github.com/cilly-yllic/terraform-gcp-project-factory/blob/main/05-phase2-webhook-architecture-spec-v1.md)
 
 Phase 2 (webhook-driven) アーキテクチャの中核コンポーネント。全体アーキテクチャ上の位置づけは [`docs/architecture.md`](../docs/architecture.md) を参照。
 

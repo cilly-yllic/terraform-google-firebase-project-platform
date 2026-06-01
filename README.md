@@ -307,25 +307,35 @@ The full list is in [outputs.tf](./outputs.tf). Highlights:
 |------|-------------|
 | `project_id` / `enabled_apis` | Basic project info |
 | `firebase_project_id` | Firebase project ID (when `firebase` enabled) |
+| `auth_config_name` | Identity Platform config resource name |
 | `firestore_default_database` / `firestore_additional_databases` | Firestore database names |
+| `firestore_default_location` | Default Firestore database location |
+| `rtdb_name` / `rtdb_database_url` | Realtime Database instance name and URL |
 | `storage_default_bucket` / `storage_additional_buckets` | Storage bucket names |
-| `hosting_site_id` / `hosting_default_url` | Hosting site info |
+| `hosting_site_id` / `hosting_default_url` / `hosting_app_id` | Hosting site info and Web App ID |
 | `app_hosting_name` / `app_hosting_uri` | App Hosting backend info |
+| `data_connect_name` | Data Connect service resource name |
 | `ci_service_account_email` / `ci_service_account_roles` | CI SA email and auto-assigned roles |
 | `service_account_emails` / `service_account_roles` | Additional SA emails and roles |
+| `user_members` / `user_roles` | IAM members and roles assigned to users |
 
 <details><summary>Ja</summary>
 
-完全なリストは [outputs.tf](./outputs.tf)。代表的なものは:
+完全なリストは [outputs.tf](./outputs.tf)。
 
 - `project_id` / `enabled_apis` — プロジェクトの基本情報
 - `firebase_project_id` — Firebase 化された場合の project_id
+- `auth_config_name` — Identity Platform config のリソース名
 - `firestore_default_database` / `firestore_additional_databases` — Firestore database 名
+- `firestore_default_location` — デフォルト Firestore database のロケーション
+- `rtdb_name` / `rtdb_database_url` — Realtime Database インスタンス名と URL
 - `storage_default_bucket` / `storage_additional_buckets` — Storage bucket 名
-- `hosting_site_id` / `hosting_default_url` — Hosting site の情報
+- `hosting_site_id` / `hosting_default_url` / `hosting_app_id` — Hosting site の情報と Web App ID
 - `app_hosting_name` / `app_hosting_uri` — App Hosting backend の情報
+- `data_connect_name` — Data Connect service のリソース名
 - `ci_service_account_email` / `ci_service_account_roles` — CI SA の email と自動付与 roles
 - `service_account_emails` / `service_account_roles` — 追加 SA の email と roles
+- `user_members` / `user_roles` — ユーザーに付与された IAM members と roles
 
 </details>
 
@@ -453,6 +463,7 @@ For the responsibility split and handoff flow, see [docs/architecture.md](./docs
 - [docs/console-access.md](./docs/console-access.md) — Firebase Console / GCP IAM access design
 - [docs/service-accounts.md](./docs/service-accounts.md) — CI SA and additional SA operations
 - [docs/upgrade-guide.md](./docs/upgrade-guide.md) — Breaking changes between Registry versions
+- [docs/upstream-spec-links.md](./docs/upstream-spec-links.md) — Index of upstream design specs (`terraform-gcp-project-factory`)
 - [terraform-architecture.md](./terraform-architecture.md) — Operational policy for the Terraform execution platform
 
 <details><summary>Ja</summary>
@@ -463,6 +474,7 @@ For the responsibility split and handoff flow, see [docs/architecture.md](./docs
 - [docs/console-access.md](./docs/console-access.md) — Firebase Console / GCP IAM の権限設計
 - [docs/service-accounts.md](./docs/service-accounts.md) — CI SA と追加 SA の運用
 - [docs/upgrade-guide.md](./docs/upgrade-guide.md) — Registry バージョン間の breaking change 一覧
+- [docs/upstream-spec-links.md](./docs/upstream-spec-links.md) — 上流 spec へのリンク集
 - [terraform-architecture.md](./terraform-architecture.md) — Terraform 実行基盤の運用方針
 
 </details>

@@ -6,6 +6,10 @@ Starting from the Project Repository's `terraform/settings.yml`, it fetches the 
 
 For its position in the overall architecture, see [`docs/architecture.md`](../../docs/architecture.md).
 
+> **Upstream spec**: [06 — Public reusable GitHub Actions spec v1](https://github.com/cilly-yllic/terraform-gcp-project-factory/blob/main/06-public-actions-spec-v1.md)
+
+This corresponds to **Action B** (`dispatch-tfc-firebase-platform`) in the upstream spec. Action A (`dispatch-tfc-project-factory`) lives in a separate repository and handles the project-factory stage.
+
 <details><summary>Ja</summary>
 
 Firebase Platform 用の Terraform Cloud Run を起動する GitHub Action。
@@ -13,6 +17,10 @@ Firebase Platform 用の Terraform Cloud Run を起動する GitHub Action。
 Project Repository が `terraform/settings.yml` を起点に、project-factory workspace の outputs を取得し、`{service}-{env}` workspace を upsert → 変数同期 → Run 作成までを一括実行する。
 
 全体アーキテクチャ上の位置づけは [`docs/architecture.md`](../../docs/architecture.md) を参照。
+
+> **上流 spec**: [06 — Public reusable GitHub Actions spec v1](https://github.com/cilly-yllic/terraform-gcp-project-factory/blob/main/06-public-actions-spec-v1.md)
+
+上流 spec における **Action B** (`dispatch-tfc-firebase-platform`) に対応する。Action A (`dispatch-tfc-project-factory`) は別リポジトリで管理され、project-factory ステージを担当する。
 
 </details>
 
