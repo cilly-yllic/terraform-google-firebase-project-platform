@@ -4,6 +4,8 @@ Firebase Platform 用の Terraform Cloud Run を起動する GitHub Action。
 
 Project Repository が `terraform/settings.yml` を起点に、project-factory workspace の outputs を取得し、`{service}-{env}` workspace を upsert → 変数同期 → Run 作成までを一括実行する。
 
+全体アーキテクチャ上の位置づけは [`docs/architecture.md`](../../docs/architecture.md) を参照。
+
 ---
 
 ## Inputs
@@ -101,7 +103,7 @@ jobs:
 
       - name: Dispatch Firebase Platform Run
         id: dispatch
-        uses: MoooDoNE/terraform-google-firebase-project-platform/actions/dispatch@v1
+        uses: cilly-yllic/terraform-google-firebase-project-platform/actions/dispatch@v1
         with:
           service: my-app
           environment: dev
@@ -127,7 +129,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: MoooDoNE/terraform-google-firebase-project-platform/actions/dispatch@v1
+      - uses: cilly-yllic/terraform-google-firebase-project-platform/actions/dispatch@v1
         with:
           service: ${{ github.event.client_payload.service }}
           environment: ${{ github.event.client_payload.environment }}

@@ -2,7 +2,7 @@
 
 TFC (Terraform Cloud) Run completion notification を受信し、GitHub `repository_dispatch` を発火する Cloud Run service の **reference implementation**。
 
-Phase 2 (webhook-driven) アーキテクチャの中核コンポーネント。
+Phase 2 (webhook-driven) アーキテクチャの中核コンポーネント。全体アーキテクチャ上の位置づけは [`docs/architecture.md`](../docs/architecture.md) を参照。
 
 ---
 
