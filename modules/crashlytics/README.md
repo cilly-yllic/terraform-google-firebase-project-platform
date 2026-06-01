@@ -1,10 +1,16 @@
 # modules/crashlytics
 
+Placeholder submodule for enabling the Firebase Crashlytics API.
+
+<details><summary>Ja</summary>
+
 Firebase Crashlytics API 有効化のためのプレースホルダ submodule。
 
-## 作成するリソース
+</details>
 
-なし。本機能の API のみを有効化するためのアタッチポイント。
+## Resources created
+
+None. An attach point that only enables the relevant API.
 
 ## Inputs
 
@@ -14,16 +20,22 @@ Firebase Crashlytics API 有効化のためのプレースホルダ submodule。
 
 ## Outputs
 
-なし。
+None.
 
-## 関連 API
+## Related APIs
 
-- `firebasecrashlytics.googleapis.com` (root module で自動有効化)
+- `firebasecrashlytics.googleapis.com` (auto-enabled by the root module)
 
-## ルートモジュールでの呼び出し条件
+## Invocation condition
 
-`var.crashlytics != null` の場合に呼び出される。
+Called when `var.crashlytics != null`.
 
-## 管理範囲外
+## Out of scope
+
+Crashlytics is primarily SDK setup + event reporting; there are essentially no server-side settings to manage.
+
+<details><summary>Ja</summary>
 
 Crashlytics は SDK 側のセットアップとイベント送信が中心で、サーバー側で管理する設定は基本的にない。
+
+</details>

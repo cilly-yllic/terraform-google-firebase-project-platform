@@ -1,10 +1,20 @@
 # dispatch-tfc-firebase-platform
 
+A GitHub Action that starts a Terraform Cloud Run for the Firebase Platform.
+
+Starting from the Project Repository's `terraform/settings.yml`, it fetches the project-factory workspace outputs and runs the **`{service}-{env}` workspace upsert → variable sync → Run create** flow in one shot.
+
+For its position in the overall architecture, see [`docs/architecture.md`](../../docs/architecture.md).
+
+<details><summary>Ja</summary>
+
 Firebase Platform 用の Terraform Cloud Run を起動する GitHub Action。
 
 Project Repository が `terraform/settings.yml` を起点に、project-factory workspace の outputs を取得し、`{service}-{env}` workspace を upsert → 変数同期 → Run 作成までを一括実行する。
 
 全体アーキテクチャ上の位置づけは [`docs/architecture.md`](../../docs/architecture.md) を参照。
+
+</details>
 
 ---
 
@@ -12,48 +22,78 @@ Project Repository が `terraform/settings.yml` を起点に、project-factory w
 
 | Name | Description | Required | Default |
 |------|-------------|:--------:|---------|
-| `service` | サービス名 | yes | — |
-| `environment` | 対象環境 (`dev` / `stg` / `prd`) | yes | — |
-| `settings_path` | settings.yml のパス | no | `terraform/settings.yml` |
-| `tfc_org` | Terraform Cloud organization 名 | yes | — |
-| `project_factory_workspace` | 上流 project-factory workspace 名パターン (`{service}` 展開) | no | `project-factory-{service}` |
-| `target_workspace` | 作成する workspace 名パターン (`{service}`, `{environment}` 展開) | no | `{service}-{environment}` |
-| `bootstrap_project_id` | GCP bootstrap project ID (Workload Identity 用) | no | `infra-bootstrap` |
-| `bootstrap_project_number` | GCP bootstrap project number (数値, WIF パス用) | yes | — |
+| `service` | Service name | yes | — |
+| `environment` | Target environment (`dev` / `stg` / `prd`) | yes | — |
+| `settings_path` | Path to settings.yml | no | `terraform/settings.yml` |
+| `tfc_org` | Terraform Cloud organization name | yes | — |
+| `project_factory_workspace` | Upstream project-factory workspace name pattern (`{service}` expansion) | no | `project-factory-{service}` |
+| `target_workspace` | Workspace name pattern to create (`{service}`, `{environment}` expansion) | no | `{service}-{environment}` |
+| `bootstrap_project_id` | GCP bootstrap project ID (for Workload Identity) | no | `infra-bootstrap` |
+| `bootstrap_project_number` | GCP bootstrap project number (numeric, for the WIF path) | yes | — |
 | `workload_identity_pool_id` | Workload Identity Pool ID | no | `terraform-cloud` |
 | `workload_identity_provider_id` | Workload Identity Provider ID | no | `terraform-cloud` |
 | `tfc_token` | Terraform Cloud API token | yes | — |
 | `apply_policy` | Run apply policy: `auto` / `manual` / `env-based` | no | `env-based` |
-| `enable_webhook_notification` | Phase 2 webhook 通知を設定するか | no | `false` |
-| `cloud_run_webhook_url` | Cloud Run router URL (webhook 有効時必須) | no | — |
-| `cloud_run_webhook_secret` | HMAC secret (Cloud Run router と共有) | no | — |
+| `enable_webhook_notification` | Whether to configure a Phase 2 webhook notification | no | `false` |
+| `cloud_run_webhook_url` | Cloud Run router URL (required when webhook is on) | no | — |
+| `cloud_run_webhook_secret` | HMAC secret (shared with the Cloud Run router) | no | — |
+
+<details><summary>Ja</summary>
+
+- `service` (required): サービス名
+- `environment` (required): 対象環境 (`dev` / `stg` / `prd`)
+- `settings_path` (default `terraform/settings.yml`): settings.yml のパス
+- `tfc_org` (required): Terraform Cloud organization 名
+- `project_factory_workspace` (default `project-factory-{service}`): 上流 project-factory workspace 名パターン
+- `target_workspace` (default `{service}-{environment}`): 作成する workspace 名パターン
+- `bootstrap_project_id` (default `infra-bootstrap`): GCP bootstrap project ID (Workload Identity 用)
+- `bootstrap_project_number` (required): GCP bootstrap project number (数値, WIF パス用)
+- `workload_identity_pool_id` (default `terraform-cloud`): Workload Identity Pool ID
+- `workload_identity_provider_id` (default `terraform-cloud`): Workload Identity Provider ID
+- `tfc_token` (required): Terraform Cloud API token
+- `apply_policy` (default `env-based`): Run apply policy
+- `enable_webhook_notification` (default `false`): Phase 2 webhook 通知を設定するか
+- `cloud_run_webhook_url`: Cloud Run router URL (webhook 有効時必須)
+- `cloud_run_webhook_secret`: HMAC secret (Cloud Run router と共有)
+
+</details>
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
 | `run_id` | Terraform Cloud Run ID |
-| `run_url` | Terraform Cloud UI の Run URL |
+| `run_url` | URL of the Run in the Terraform Cloud UI |
 | `workspace_id` | Terraform Cloud Workspace ID |
-| `workspace_name` | Terraform Cloud Workspace 名 |
+| `workspace_name` | Terraform Cloud Workspace name |
 
 ---
 
-## Apply Policy
+## Apply policy
+
+The `apply_policy` input controls Run auto-apply.
+
+| Value | Behavior |
+|-------|----------|
+| `auto` | auto-apply across all environments |
+| `manual` | manual approval across all environments |
+| `env-based` (default) | dev = auto-apply, stg/prd = manual approval |
+
+<details><summary>Ja</summary>
 
 `apply_policy` input で Run の自動 apply を制御する。
 
-| 値 | 動作 |
-|---|---|
-| `auto` | 全環境で auto-apply |
-| `manual` | 全環境で手動承認 |
-| `env-based` (default) | dev = auto-apply, stg/prd = 手動承認 |
+- `auto` — 全環境で auto-apply
+- `manual` — 全環境で手動承認
+- `env-based` (default) — dev = auto-apply, stg/prd = 手動承認
+
+</details>
 
 ---
 
-## settings.yml 構造
+## settings.yml structure
 
-Action が読み取る `firebase_platform` セクション例:
+Example of the `firebase_platform` section the Action reads:
 
 ```yaml
 service: my-app
@@ -86,13 +126,19 @@ environments:
       storage: true
 ```
 
+Each feature accepts `null` (omitted) / `true` / `{ ... }` (custom config).
+
+<details><summary>Ja</summary>
+
 各機能は `null` (省略) / `true` / `{ ... }` (カスタム設定) で指定する。
+
+</details>
 
 ---
 
-## 使用例
+## Examples
 
-### Phase 1 (orchestrator 内で call)
+### Phase 1 (called from the orchestrator)
 
 ```yaml
 jobs:
@@ -115,7 +161,7 @@ jobs:
         run: echo "${{ steps.dispatch.outputs.run_url }}"
 ```
 
-### Phase 2 (Project Repo workflow 直接 call)
+### Phase 2 (called directly from the Project Repo workflow)
 
 ```yaml
 name: Firebase Platform Trigger
@@ -144,7 +190,16 @@ jobs:
 
 ---
 
-## 処理フロー
+## Processing flow
+
+1. Read `settings.yml` and extract the `environments[env].firebase_platform` section.
+2. Use the TFC API to fetch `project_id` / `project_number` / `terraform_service_account_email` from the `project-factory-{service}` workspace outputs.
+3. Upsert the `{service}-{env}` workspace (update if it exists, create otherwise).
+4. Sync Terraform Variables — map each feature flag to an HCL variable in `null | true | object` form.
+5. Sync Environment Variables (for TFC Dynamic Credentials).
+6. Start the Run (applying the env-based apply policy).
+
+<details><summary>Ja</summary>
 
 1. `settings.yml` を読み込み、`environments[env].firebase_platform` セクションを抽出
 2. TFC API で `project-factory-{service}` workspace の outputs から `project_id` / `project_number` / `terraform_service_account_email` を取得
@@ -153,6 +208,15 @@ jobs:
 5. Environment Variables を同期 (TFC Dynamic Credentials 用)
 6. Run を起動 (env 別 apply policy 適用)
 
-> **⚠️ Full Workspace Management:** この Action は workspace の変数を完全に管理する。Action が生成しない変数 (手動追加や他ツールで設定した変数) は **毎回削除される**。手動で設定が必要な変数がある場合は `settings.yml` の `firebase_platform` セクションに含めるか、別の workspace を使用すること。
+</details>
 
-> **ℹ️ API-driven Workspace:** この Action は VCS 接続なしの API-driven workspace を作成・管理する。GitHub Actions 側がリポジトリの変更を検知し、settings.yml の値を元に Terraform 変数を設定して apply run を実行する設計のため、VCS 連携は不要。
+> **⚠️ Full Workspace Management:** This Action fully manages the workspace's variables. Any variable the Action does not generate (e.g. manually added or set by other tooling) **will be deleted on every run**. Include manually-required variables in the `firebase_platform` section of `settings.yml`, or use a separate workspace.
+
+> **ℹ️ API-driven Workspace:** This Action creates and manages an API-driven workspace with no VCS connection. GitHub Actions detects repo changes, sets Terraform variables based on settings.yml, and runs apply — no VCS link is needed.
+
+<details><summary>Ja</summary>
+
+- **Full Workspace Management:** この Action は workspace の変数を完全に管理する。Action が生成しない変数 (手動追加や他ツールで設定した変数) は **毎回削除される**。手動で設定が必要な変数がある場合は `settings.yml` の `firebase_platform` セクションに含めるか、別の workspace を使用すること
+- **API-driven Workspace:** この Action は VCS 接続なしの API-driven workspace を作成・管理する。GitHub Actions 側がリポジトリの変更を検知し、settings.yml の値を元に Terraform 変数を設定して apply run を実行する設計のため、VCS 連携は不要
+
+</details>

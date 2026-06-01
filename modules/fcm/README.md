@@ -1,10 +1,16 @@
 # modules/fcm
 
+Placeholder submodule for enabling the Firebase Cloud Messaging API.
+
+<details><summary>Ja</summary>
+
 Firebase Cloud Messaging API 有効化のためのプレースホルダ submodule。
 
-## 作成するリソース
+</details>
 
-なし。本機能の API のみを有効化するためのアタッチポイント。
+## Resources created
+
+None. An attach point that only enables the relevant API.
 
 ## Inputs
 
@@ -14,20 +20,30 @@ Firebase Cloud Messaging API 有効化のためのプレースホルダ submodul
 
 ## Outputs
 
-なし。
+None.
 
-## 関連 API
+## Related APIs
 
-- `fcm.googleapis.com` (root module で自動有効化)
+- `fcm.googleapis.com` (auto-enabled by the root module)
 
-## ルートモジュールでの呼び出し条件
+## Invocation condition
 
-`var.fcm != null` の場合に呼び出される。
+Called when `var.fcm != null`.
 
-## 管理範囲外
+## Out of scope
+
+- Server-side management of FCM topics / device tokens
+- Push notification sending
+- Legacy API switching in the Console
+
+Kept as an extension point in case FCM-adjacent resources need to be Terraformed in the future.
+
+<details><summary>Ja</summary>
 
 - FCM Topic / device token のサーバーサイド管理
 - Push 通知の送信
 - Console での legacy API 切り替え
 
 将来 FCM 周辺リソースを Terraform 化する必要が出た場合の拡張ポイントとして残している。
+
+</details>

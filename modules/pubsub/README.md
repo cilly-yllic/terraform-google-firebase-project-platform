@@ -1,10 +1,16 @@
 # modules/pubsub
 
+Placeholder submodule for enabling the Pub/Sub API.
+
+<details><summary>Ja</summary>
+
 Pub/Sub API 有効化のためのプレースホルダ submodule。
 
-## 作成するリソース
+</details>
 
-なし。Topic / Subscription 自体は本モジュールでは作成しない。
+## Resources created
+
+None. Topics / subscriptions are not created by this module.
 
 ## Inputs
 
@@ -14,16 +20,22 @@ Pub/Sub API 有効化のためのプレースホルダ submodule。
 
 ## Outputs
 
-なし。
+None.
 
-## 関連 API
+## Related APIs
 
-- `pubsub.googleapis.com` (root module で自動有効化)
+- `pubsub.googleapis.com` (auto-enabled by the root module)
 
-## ルートモジュールでの呼び出し条件
+## Invocation condition
 
-`var.pubsub != null` の場合に呼び出される。
+Called when `var.pubsub != null`.
 
-## 設計意図
+## Design intent
+
+Pub/Sub is typically combined with Eventarc / Cloud Functions / Cloud Run for service-specific domain logic, so this module limits itself to API enablement.
+
+<details><summary>Ja</summary>
 
 Pub/Sub は Eventarc / Cloud Functions / Cloud Run と組み合わせて service 固有のドメイン用途に使われることが多く、本モジュールでは API 有効化のみに留めている。
+
+</details>

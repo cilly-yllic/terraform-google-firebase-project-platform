@@ -1,38 +1,53 @@
 # modules/hosting
 
+Submodule that creates a Firebase Hosting **Web App + Hosting site**.
+
+<details><summary>Ja</summary>
+
 Firebase Hosting の **Web App + Hosting site** を作成する submodule。
 
-## 作成するリソース
+</details>
 
-| Resource | Provider | 役割 |
+## Resources created
+
+| Resource | Provider | Role |
 |----------|----------|------|
-| `google_firebase_web_app.this` | `google-beta` | Firebase Web App (`site_id` を display name にする) |
-| `google_firebase_hosting_site.this` | `google-beta` | Hosting site (Web App と紐付け) |
+| `google_firebase_web_app.this` | `google-beta` | Firebase Web App (uses `site_id` as the display name) |
+| `google_firebase_hosting_site.this` | `google-beta` | Hosting site (linked to the Web App) |
 
 ## Inputs
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
 | `project` | `string` | (required) | GCP project ID |
-| `site_id` | `string` | `var.project` (空文字なら project ID にフォールバック) | Hosting site ID |
+| `site_id` | `string` | `var.project` (empty falls back to project ID) | Hosting site ID |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| `site_id` | 実際に使用された site ID |
-| `app_id` | Firebase Web App ID (App Hosting に渡す用) |
-| `default_url` | Hosting site のデフォルト URL |
+| `site_id` | Site ID actually used |
+| `app_id` | Firebase Web App ID (used for App Hosting wiring) |
+| `default_url` | Hosting site default URL |
 
-## 関連 API
+## Related APIs
 
 - `firebasehosting.googleapis.com`
 
-## ルートモジュールでの呼び出し条件
+## Invocation condition
 
-`var.hosting != null` の場合に呼び出される。
+Called when `var.hosting != null`.
 
-## 管理範囲外
+## Out of scope
+
+- Hosting deploy (`firebase deploy --only hosting`)
+- rewrites / redirects / headers
+- Custom domains
+- GitHub Integration
+
+These are managed via Firebase CLI or other operational tooling.
+
+<details><summary>Ja</summary>
 
 - Hosting deploy (`firebase deploy --only hosting`)
 - rewrites / redirects / headers
@@ -40,3 +55,5 @@ Firebase Hosting の **Web App + Hosting site** を作成する submodule。
 - GitHub Integration
 
 これらは Firebase CLI または別途運用ツールで管理する。
+
+</details>

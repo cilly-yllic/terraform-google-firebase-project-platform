@@ -1,28 +1,39 @@
 # Service Accounts
 
+This module manages two kinds of Service Accounts:
+
+| Variable | Use | How roles are decided |
+|----------|-----|----------------------|
+| `ci_service_account` | A **single shared SA** for CI/CD deploys | **Auto-derived** from feature on/off |
+| `service_accounts` | Arbitrary SAs for app runtime / batch / integrations | Specified via per-feature flags in `args` |
+
+The App Hosting compute SA (`firebase-app-hosting-compute`) is created automatically when `app_hosting` is enabled (separate logic).
+
+<details><summary>Ja</summary>
+
 本モジュールが扱う Service Account は次の 2 種類:
 
-| 変数 | 用途 | roles の決定方法 |
-|------|------|----------------|
-| `ci_service_account` | CI/CD で deploy を実行する **共通の 1 SA** | 機能 on/off から **自動判定** |
-| `service_accounts` | アプリ・バッチ・連携用の **任意の SA 群** | `args` で機能フラグを指定 |
+- `ci_service_account` — CI/CD で deploy を実行する **共通の 1 SA**。roles は機能 on/off から **自動判定**
+- `service_accounts` — アプリ・バッチ・連携用の **任意の SA 群**。`args` で機能フラグを指定
 
 App Hosting 用の compute SA (`firebase-app-hosting-compute`) は `app_hosting` 機能が有効な場合に自動作成される (これは別ロジック)。
+
+</details>
 
 ---
 
 ## CI Service Account (`ci_service_account`)
 
-### 指定方法
+### Usage
 
 ```hcl
-# 無効
+# Disabled
 ci_service_account = null
 
-# デフォルト設定で有効化
+# Enabled with defaults
 ci_service_account = true
 
-# カスタム
+# Custom
 ci_service_account = {
   account_id       = "ci-deploy"
   display_name     = "CI/CD Deployment"
@@ -30,13 +41,13 @@ ci_service_account = {
 }
 ```
 
-### 自動付与される roles
+### Auto-granted roles
 
-`enable_*` が `true` の機能に応じて以下が付与される。重複は `distinct()` で排除される。
+When `enable_*` is `true` for a given feature, the following are added (deduped via `distinct()`):
 
-| 機能 | 付与 roles |
-|------|----------|
-| 常に | `roles/runtimeconfig.admin` |
+| Feature | Roles granted |
+|---------|---------------|
+| (always) | `roles/runtimeconfig.admin` |
 | `hosting` | `roles/firebasehosting.admin` |
 | `cloud_functions` | `roles/cloudfunctions.admin`, `roles/iam.serviceAccountUser`, `roles/artifactregistry.admin` |
 | `firestore` | `roles/datastore.indexAdmin`, `roles/firebaserules.admin` |
@@ -47,20 +58,26 @@ ci_service_account = {
 | `secret_manager` | `roles/secretmanager.admin` |
 | `cloud_run` | `roles/run.admin` |
 
-`additional_roles` で上記に積み増しできる。
+`additional_roles` can stack extra roles on top.
 
-### 出力
+<details><summary>Ja</summary>
 
-- `ci_service_account_email` — 作成された SA の email
-- `ci_service_account_roles` — 実際に付与された roles のリスト
+`enable_*` が `true` の機能に応じて roles が付与される。重複は `distinct()` で排除される。`additional_roles` で上記に積み増しできる。
+
+</details>
+
+### Outputs
+
+- `ci_service_account_email` — the created SA's email
+- `ci_service_account_roles` — the actual list of roles granted
 
 ---
 
-## 追加 Service Accounts (`service_accounts`)
+## Additional Service Accounts (`service_accounts`)
 
-CI 以外の用途 (アプリランタイム、バッチ、外部連携など) で使う SA。現状 `type = "deploy"` のみ実装されている。
+SAs for purposes other than CI (app runtime, batch jobs, external integrations). Currently only `type = "deploy"` is implemented.
 
-### 指定方法
+### Usage
 
 ```hcl
 service_accounts = [
@@ -89,12 +106,12 @@ service_accounts = [
 ]
 ```
 
-### `args` で付与される roles
+### Roles granted from `args`
 
-`true` にしたフラグごとに以下が付与される。`ci_service_account` と同じロジック。
+Each flag set to `true` adds the listed roles (same logic as `ci_service_account`):
 
-| `args` フィールド | 付与 roles |
-|------|----------|
+| `args` field | Roles granted |
+|--------------|---------------|
 | `hosting` | `roles/firebasehosting.admin` |
 | `functions` | `roles/cloudfunctions.admin`, `roles/iam.serviceAccountUser`, `roles/artifactregistry.admin` |
 | `firestore` | `roles/datastore.indexAdmin`, `roles/firebaserules.admin` |
@@ -103,31 +120,52 @@ service_accounts = [
 | `tasks` | `roles/cloudtasks.queueAdmin` |
 | `blocking` | `roles/firebaseauth.admin` |
 
-すべての `type = "deploy"` SA に共通で `roles/runtimeconfig.admin` が付与される。
+All `type = "deploy"` SAs get `roles/runtimeconfig.admin` in common.
 
-任意の追加 role が必要な場合は `roles = ["roles/..."]` を併用する。
+Additional ad-hoc roles can be appended via `roles = ["roles/..."]`.
 
-### 出力
+<details><summary>Ja</summary>
 
-- `service_account_emails` — `{ account_id => email }` の map
-- `service_account_roles` — `{ account_id => [roles...] }` の map
+`true` にしたフラグごとに roles が付与される。`ci_service_account` と同じロジック。すべての `type = "deploy"` SA に共通で `roles/runtimeconfig.admin` が付与される。任意の追加 role が必要な場合は `roles = ["roles/..."]` を併用する。
+
+</details>
+
+### Outputs
+
+- `service_account_emails` — `{ account_id => email }`
+- `service_account_roles` — `{ account_id => [roles...] }`
 
 ---
 
-## App Hosting の compute SA
+## App Hosting compute SA
 
-`app_hosting` 機能を有効化し、`app_hosting.service_account` を空文字 (= 自動作成) にした場合、以下の SA が自動的に作られる:
+When `app_hosting` is enabled and `app_hosting.service_account` is empty (= auto-create), the following SA is created automatically:
 
 - account_id: `firebase-app-hosting-compute`
-- 付与 role: `roles/firebaseapphosting.computeRunner`
+- granted role: `roles/firebaseapphosting.computeRunner`
 
-既存の SA を使いたい場合は `app_hosting.service_account = "<email>"` を指定する (この場合は SA 作成・role 付与は行わない)。
+To reuse an existing SA, set `app_hosting.service_account = "<email>"` (no SA creation or role grant in that case).
+
+<details><summary>Ja</summary>
+
+`app_hosting` 機能を有効化し、`app_hosting.service_account` を空文字 (= 自動作成) にした場合、`firebase-app-hosting-compute` SA が自動的に作られ、`roles/firebaseapphosting.computeRunner` が付与される。既存の SA を使いたい場合は `app_hosting.service_account = "<email>"` を指定する。
+
+</details>
 
 ---
 
-## ベストプラクティス
+## Best practices
+
+- Keep CI to a single SA (`ci_service_account`).
+- Use `service_accounts` for app-runtime SAs — **don't reuse the CI SA** (separation of concerns + cleaner audit logs).
+- Set only the minimum necessary flags to `true` in `service_accounts[*].args`.
+- If operating Identity Platform blocking functions, allocate an SA with `args.blocking = true` (needs `roles/firebaseauth.admin`).
+
+<details><summary>Ja</summary>
 
 - CI 用の SA は基本 1 個 (`ci_service_account`) に集約する
 - アプリランタイム用は **CI SA を流用せず**、`service_accounts` で別 SA を用意する (権限分離 / 監査ログ追跡)
 - `service_accounts[*].args` で必要最小限のフラグのみ `true` にする
 - Identity Platform の blocking functions を運用する場合は `args.blocking = true` を付ける SA を用意する (`roles/firebaseauth.admin` が必要)
+
+</details>

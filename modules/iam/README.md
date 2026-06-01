@@ -1,17 +1,23 @@
 # modules/iam
 
+Submodule that manages Project-level IAM (users / CI SA / additional SAs) in one place.
+
+<details><summary>Ja</summary>
+
 Project レベル IAM (ユーザー / CI SA / 追加 SA) を一括で管理する submodule。
 
-## 作成するリソース
+</details>
 
-| Resource | 役割 |
+## Resources created
+
+| Resource | Role |
 |----------|------|
-| `google_project_iam_member.user` | `users[]` で指定したユーザーへの role 付与 (base role + 任意で deploy role) |
-| `google_service_account.ci` | `ci_service_account != null` の場合に作成 |
-| `google_project_iam_member.ci_role` | CI SA への role 付与 (自動判定 + `additional_roles`) |
-| `google_service_account.this` | `service_accounts[]` の SA を for_each で作成 |
-| `google_project_iam_member.sa_computed` | `service_accounts[].args` から計算した role を付与 |
-| `google_project_iam_member.sa_explicit` | `service_accounts[].roles` で明示した role を付与 |
+| `google_project_iam_member.user` | Grants roles to users in `users[]` (base role + optional deploy roles) |
+| `google_service_account.ci` | Created when `ci_service_account != null` |
+| `google_project_iam_member.ci_role` | Grants roles to the CI SA (auto-derived + `additional_roles`) |
+| `google_service_account.this` | Creates each SA in `service_accounts[]` via for_each |
+| `google_project_iam_member.sa_computed` | Grants roles computed from `service_accounts[].args` |
+| `google_project_iam_member.sa_explicit` | Grants roles explicitly listed in `service_accounts[].roles` |
 
 ## Inputs
 
@@ -19,39 +25,45 @@ Project レベル IAM (ユーザー / CI SA / 追加 SA) を一括で管理す�
 |------|------|---------|-------------|
 | `project` | `string` | (required) | GCP project ID |
 | `users` | `list(object)` | `[]` | `email`, `role` (`viewer\|editor\|owner`), `deploy` (bool) |
-| `ci_service_account` | `object \| null` | `null` | `account_id`, `display_name`, `roles` (= 既に計算済みの roles リスト) |
+| `ci_service_account` | `object \| null` | `null` | `account_id`, `display_name`, `roles` (already-computed roles list) |
 | `service_accounts` | `list(object)` | `[]` | `account_id`, `display_name`, `type`, `roles`, `args` |
 
+The root module receives `var.users` / `var.ci_service_account` / `var.service_accounts`, performs preprocessing (e.g. CI SA role auto-derivation), and passes the result to this submodule.
+
+<details><summary>Ja</summary>
+
 ルートモジュールが `var.users` / `var.ci_service_account` / `var.service_accounts` を受け取り、必要な前処理 (CI SA の roles 自動計算など) を行った上で本 submodule に渡している。
+
+</details>
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| `user_members` | 付与された IAM member 一覧 |
-| `user_roles` | 付与された role 一覧 |
-| `ci_service_account_email` | CI SA email (なければ `null`) |
-| `ci_service_account_roles` | CI SA に付与された roles |
+| `user_members` | List of granted IAM members |
+| `user_roles` | List of granted roles |
+| `ci_service_account_email` | CI SA email (`null` if not created) |
+| `ci_service_account_roles` | Roles granted to the CI SA |
 | `service_account_emails` | `{ account_id => email }` |
 | `service_account_ids` | `{ account_id => unique_id }` |
-| `service_account_roles` | `{ account_id => [roles...] }` (自動計算 + 明示の合算) |
+| `service_account_roles` | `{ account_id => [roles...] }` (auto-computed + explicit, combined) |
 
-## ユーザー role 付与ロジック
+## User role grant logic
 
 ```
 viewer  → roles/viewer
 editor  → roles/editor
 owner   → roles/owner
 
-deploy=true の場合は、上記に加えて
+If deploy=true, additionally:
   roles/cloudfunctions.admin
   roles/artifactregistry.reader
 ```
 
-## CI SA / 追加 SA の自動 role
+## Auto-derived roles for CI / additional SAs
 
-[docs/service-accounts.md](../../docs/service-accounts.md) を参照。
+See [docs/service-accounts.md](../../docs/service-accounts.md).
 
-## 関連 API
+## Related APIs
 
-- `iam.googleapis.com` (SA を作成する場合のみ root module で自動有効化)
+- `iam.googleapis.com` (auto-enabled by the root module when SAs are created)

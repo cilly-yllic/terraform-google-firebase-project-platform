@@ -1,61 +1,101 @@
-# アーキテクチャ
+# Architecture
+
+Describes where this repository (`terraform-google-firebase-project-platform`) sits, and how it splits responsibility with the bundled reference implementations.
+
+<details><summary>Ja</summary>
 
 本リポジトリ (`terraform-google-firebase-project-platform`) の位置づけと、同梱する reference 実装との責務分離を説明する。
 
+</details>
+
 ---
 
-## 本リポジトリの位置づけ
+## Position of this repository
 
-GCP / Firebase Project を **構築する Terraform 実行基盤** と、**それらの基盤から呼び出される共通 Module** は別レイヤーであり、本リポジトリは後者にあたる。
+The **Terraform execution platform** that provisions a GCP / Firebase Project and the **shared Module called by that platform** are different layers. This repository owns the latter.
 
 ```text
-+--- Terraform 実行基盤 (利用側のリポジトリ群) ----------------------+
++--- Terraform execution platform (caller-side repos) -------------+
 |                                                                  |
-|   infra-bootstrap          : Workload Identity Federation など     |
-|   project-factory          : GCP Project / Billing / 初期 IAM の作成 |
-|   {service}-dev / stg / prd: サービス単位の workspace              |
+|   infra-bootstrap          : Workload Identity Federation, etc.   |
+|   project-factory          : Creates GCP Project / Billing / IAM  |
+|   {service}-dev / stg / prd: Per-service workspaces               |
 |                                                                  |
 +------------------------------------------------------------------+
                           ↓ module source = registry
-+--- 本リポジトリ (公開 Terraform Module) ---------------------------+
++--- This repository (public Terraform Module) --------------------+
 |                                                                  |
 |   terraform-google-firebase-project-platform                     |
-|     - GCP Project 内部のリソース / API / IAM のみ管理              |
-|     - 機能変数 (null / true / object) で on/off                  |
+|     - Manages only resources / APIs / IAM inside the Project     |
+|     - Feature variables (null / true / object) for on/off        |
 |                                                                  |
 +------------------------------------------------------------------+
 ```
+
+- **This module does not create the Project itself.** `project_id` is an input; the module only manages resources / API enablement / IAM **inside** an existing Project.
+- The upstream **project-factory stage** is expected to have created the Project, attached billing, and provisioned the initial SAs.
+- Each service-side Workspace references this module via `source = "cilly-yllic/firebase-project-platform/google"`.
+
+<details><summary>Ja</summary>
+
+GCP / Firebase Project を **構築する Terraform 実行基盤** と、**それらの基盤から呼び出される共通 Module** は別レイヤーであり、本リポジトリは後者にあたる。
 
 - **本モジュールは Project そのものを作らない**。`project_id` は引数として受け取り、Project 内部のリソース・API 有効化・IAM のみ管理する
 - 上流の **project-factory ステージ** で Project / Billing 紐付け / 初期 SA を作成しておく前提
 - 各サービス側 Workspace は本モジュールを `source = "cilly-yllic/firebase-project-platform/google"` で参照して利用する
 
+</details>
+
 ---
 
-## レイヤー分離の原則
+## Layer separation principles
 
-| レイヤー | 責務 | 本リポジトリでの担当 |
-|----------|------|---------------------|
-| Bootstrap | WIF / Terraform 実行用の共通 GCP Project | × (別リポジトリ) |
-| project-factory | GCP Project 作成 / Billing 紐付け / 初期 IAM | × (別リポジトリ) |
-| **firebase-project-platform** | Project 内部の API / Firebase / IAM | **○ (本モジュール)** |
-| サービス Workspace 設定 | 本モジュールへの値の流し込み | × (利用側) |
+| Layer | Responsibility | Handled in this repo |
+|-------|----------------|----------------------|
+| Bootstrap | WIF / shared GCP Project for running Terraform | × (separate repo) |
+| project-factory | GCP Project creation / billing / initial IAM | × (separate repo) |
+| **firebase-project-platform** | APIs / Firebase / IAM **inside** the Project | **○ (this module)** |
+| Service Workspace config | Feeding values into this module | × (caller side) |
+
+Each layer is expected to use a separate Service Account and state file. This module limits its responsibility to "inside the Project" to avoid interfering with other layers.
+
+<details><summary>Ja</summary>
 
 レイヤーごとに **使う Service Account** と **state file** を分離する想定であり、本モジュールは「Project 内部のみ」に責務を絞ることで他レイヤーへの干渉を防ぐ。
 
+</details>
+
 ---
 
-## 同梱する reference 実装
+## Bundled reference implementations
 
-公開 Terraform Module 本体に加えて、Terraform Cloud (TFC) との handoff を担う実装を 2 種類同梱している。**いずれも利用は任意** で、Module 単独で利用してもよい。
+In addition to the public Terraform Module itself, two implementations are bundled to handle the Terraform Cloud (TFC) handoff. **Both are optional** — the Module can be used standalone.
 
 ```
 .
-├── (Terraform Module 本体: main.tf / modules/)
+├── (Terraform Module proper: main.tf / modules/)
 │
-├── cloud-run-router/   # TFC notification → repository_dispatch を行う Cloud Run service
-└── actions/dispatch/   # {service}-{env} workspace upsert + Run 起動を行う GitHub Action
+├── cloud-run-router/   # Cloud Run service: TFC notification → repository_dispatch
+└── actions/dispatch/   # GitHub Action: {service}-{env} workspace upsert + Run dispatch
 ```
+
+### cloud-run-router
+
+- **Input**: A Run completion notification from TFC (`POST /webhook`, HMAC-SHA512 signed).
+- **Output**: A GitHub `repository_dispatch` (the `firebase_platform_requested` event to the Project Repository).
+- **Goal**: Detect project-factory Run completion and trigger the subsequent firebase-platform Run — the core of the Phase 2 (webhook-driven) architecture.
+- Details: [cloud-run-router/README.md](../cloud-run-router/README.md)
+
+### actions/dispatch
+
+- **Input**: The caller repo's `settings.yml` (`firebase_platform` section) + `service` / `environment`.
+- **Output**: An upsert of the TFC `{service}-{environment}` workspace + a Run start.
+- **Goal**: Reference project-factory outputs (project_id, etc.), inject feature variables as Terraform variables, and create the Run.
+- Details: [actions/dispatch/README.md](../actions/dispatch/README.md)
+
+<details><summary>Ja</summary>
+
+公開 Terraform Module 本体に加えて、Terraform Cloud (TFC) との handoff を担う実装を 2 種類同梱している。**いずれも利用は任意** で、Module 単独で利用してもよい。
 
 ### cloud-run-router
 
@@ -71,69 +111,103 @@ GCP / Firebase Project を **構築する Terraform 実行基盤** と、**そ�
 - **目的**: project-factory の outputs (project_id 等) を参照し、機能変数を Terraform 変数として注入して Run を作る
 - 詳細: [actions/dispatch/README.md](../actions/dispatch/README.md)
 
+</details>
+
 ---
 
-## handoff の流れ (Phase 2 webhook-driven)
+## Handoff flow (Phase 2 webhook-driven)
 
 ```text
 project-factory workspace (TFC)
   ↓ Run applied
   ↓ TFC notification (HTTP POST, HMAC-SHA512)
-cloud-run-router (Cloud Run, 本リポジトリ同梱)
-  ↓ HMAC 検証 → workspace_name routing → (service, env, source_repo) 解析
+cloud-run-router (Cloud Run, bundled in this repo)
+  ↓ HMAC verify → workspace_name routing → (service, env, source_repo) parse
   ↓ GitHub repository_dispatch (event_type = firebase_platform_requested)
-利用側 Project Repository (GitHub Actions)
-  ↓ actions/dispatch を call
-  ↓ settings.yml + project-factory outputs を読み込み
-  ↓ {service}-{env} workspace upsert + variables 同期
-  ↓ TFC Run 起動
+Caller Project Repository (GitHub Actions)
+  ↓ Calls actions/dispatch
+  ↓ Reads settings.yml + project-factory outputs
+  ↓ Upserts {service}-{env} workspace + syncs variables
+  ↓ Starts the TFC Run
 {service}-{env} workspace (TFC)
-  ↓ module "firebase_platform" { source = "cilly-yllic/firebase-project-platform/google" } を apply
-GCP Project 内に Firebase / Firestore / Storage / IAM 等が作成
+  ↓ Applies module "firebase_platform" { source = "cilly-yllic/firebase-project-platform/google" }
+Firebase / Firestore / Storage / IAM etc. are created inside the GCP Project
 ```
 
-### Phase 1 (polling) との関係
+### Relationship to Phase 1 (polling)
+
+cloud-run-router is not invoked unless a TFC notification is configured. It coexists with Phase 1 (where an orchestrator detects project-factory completion via polling and calls actions/dispatch).
+
+| State | cloud-run-router | actions/dispatch |
+|-------|------------------|------------------|
+| Phase 1 only | Not deployed | Called from the orchestrator |
+| Transitional | Deployed (per-service opt-in) | Called from either path |
+| Phase 2 only | Deployed (all services) | Called via repository_dispatch only |
+
+<details><summary>Ja</summary>
 
 cloud-run-router は TFC notification が設定されていない限り呼ばれない。Phase 1 (orchestrator が polling で project-factory 完了を検知し actions/dispatch を call) と共存できる。
 
-| 状態 | cloud-run-router | actions/dispatch |
-|------|------------------|-----------------|
-| Phase 1 only | 未デプロイ | orchestrator から call |
-| 移行期 | デプロイ済 (service 単位 opt-in) | どちらの経路からも call |
-| Phase 2 only | デプロイ済 (全 service) | repository_dispatch 経由のみ |
+- Phase 1 only: cloud-run-router 未デプロイ / actions/dispatch は orchestrator から call
+- 移行期: cloud-run-router デプロイ済 (service 単位 opt-in) / actions/dispatch はどちらの経路からも call
+- Phase 2 only: cloud-run-router デプロイ済 (全 service) / actions/dispatch は repository_dispatch 経由のみ
+
+</details>
 
 ---
 
-## API 有効化の自動判定
+## API auto-enablement
 
-利用者が `google_project_service` を個別に列挙しなくて済むよう、機能 on/off から有効化する API を自動決定する。
+To avoid making callers enumerate `google_project_service` individually, the module decides which APIs to enable from the feature flags.
 
 - `firestore = true` → `firestore.googleapis.com`, `firebaserules.googleapis.com`
 - `app_hosting = { ... }` → `firebaseapphosting.googleapis.com`, `run.googleapis.com`, `cloudbuild.googleapis.com`, `artifactregistry.googleapis.com`
 - `cloud_functions = true` → `cloudfunctions.googleapis.com`, `cloudbuild.googleapis.com`, `artifactregistry.googleapis.com`
 
-完全な対応表は [api-auto-enablement.md](./api-auto-enablement.md) を参照。
+The full mapping is in [api-auto-enablement.md](./api-auto-enablement.md).
 
-`additional_apis` でさらに追加可能 (例: `iap.googleapis.com`)。
+`additional_apis` extends this further (e.g. `iap.googleapis.com`).
+
+<details><summary>Ja</summary>
+
+利用者が `google_project_service` を個別に列挙しなくて済むよう、機能 on/off から有効化する API を自動決定する。
+
+完全な対応表は [api-auto-enablement.md](./api-auto-enablement.md) を参照。`additional_apis` でさらに追加可能 (例: `iap.googleapis.com`)。
+
+</details>
 
 ---
 
-## 副作用ゼロの原則
+## Zero-side-effect principle
 
-機能変数を `null` にした場合、その機能に対応する以下のすべてが **作成されない**:
+When a feature variable is `null`, **none** of the following are created:
 
-- submodule のリソース (Firestore database, Storage bucket, IAM binding, etc.)
-- API 有効化 (`google_project_service`)
-- CI SA に自動付与される roles
+- The submodule's resources (Firestore database, Storage bucket, IAM bindings, etc.)
+- API enablement (`google_project_service`)
+- Roles auto-assigned to the CI SA
+
+If a feature is later disabled, Terraform destroys things normally (the API itself stays enabled because `disable_on_destroy = false`, but the additional resources go away).
+
+<details><summary>Ja</summary>
+
+機能変数を `null` にした場合、その機能に対応する submodule のリソース・API 有効化・CI SA への自動付与 role の **すべてが作成されない**。
 
 機能を後から無効化した場合、Terraform は通常通り destroy を行う (API 自体は `disable_on_destroy = false` のため有効のまま残るが、追加リソースは消える)。
 
+</details>
+
 ---
 
-## 状態とプロバイダー
+## State and providers
 
 - `terraform >= 1.10.0`
 - `hashicorp/google` `>= 6.0, < 8.0`
 - `hashicorp/google-beta` `>= 6.0, < 8.0`
 
+`google-beta` is used only for Firebase-related resources (`google_firebase_*`).
+
+<details><summary>Ja</summary>
+
 `google-beta` は Firebase 関連リソース (`google_firebase_*`) でのみ利用している。
+
+</details>

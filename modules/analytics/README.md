@@ -1,10 +1,16 @@
 # modules/analytics
 
+Placeholder submodule for enabling the Google Analytics for Firebase API.
+
+<details><summary>Ja</summary>
+
 Google Analytics for Firebase API 有効化のためのプレースホルダ submodule。
 
-## 作成するリソース
+</details>
 
-なし。本機能の API のみを有効化するためのアタッチポイント。
+## Resources created
+
+None. An attach point that only enables the relevant API.
 
 ## Inputs
 
@@ -14,21 +20,31 @@ Google Analytics for Firebase API 有効化のためのプレースホルダ sub
 
 ## Outputs
 
-なし。
+None.
 
-## 関連 API
+## Related APIs
 
-- `analyticsadmin.googleapis.com` (root module で自動有効化)
-- `firebase.googleapis.com` (root module で自動有効化)
+- `analyticsadmin.googleapis.com` (auto-enabled by the root module)
+- `firebase.googleapis.com` (auto-enabled by the root module)
 
-## ルートモジュールでの呼び出し条件
+## Invocation condition
 
-`var.analytics != null` の場合に呼び出される。
+Called when `var.analytics != null`.
 
-## 管理範囲外
+## Out of scope
+
+- Linking a GA4 property (via Console / Analytics Admin API)
+- Event / Conversion configuration
+- BigQuery export configuration
+
+Manage these via separate tooling.
+
+<details><summary>Ja</summary>
 
 - GA4 property との link 作成 (Console / Analytics Admin API で実施)
 - Event / Conversion 設定
 - BigQuery export 設定
 
 これらは別途運用ツールで管理する。
+
+</details>

@@ -1,10 +1,16 @@
 # modules/extensions
 
+Placeholder submodule for enabling the Firebase Extensions API.
+
+<details><summary>Ja</summary>
+
 Firebase Extensions API 有効化のためのプレースホルダ submodule。
 
-## 作成するリソース
+</details>
 
-なし。本機能の API のみを有効化するためのアタッチポイント。
+## Resources created
+
+None. An attach point that only enables the relevant API.
 
 ## Inputs
 
@@ -14,16 +20,22 @@ Firebase Extensions API 有効化のためのプレースホルダ submodule。
 
 ## Outputs
 
-なし。
+None.
 
-## 関連 API
+## Related APIs
 
-- `firebaseextensions.googleapis.com` (root module で自動有効化)
+- `firebaseextensions.googleapis.com` (auto-enabled by the root module)
 
-## ルートモジュールでの呼び出し条件
+## Invocation condition
 
-`var.extensions != null` の場合に呼び出される。
+Called when `var.extensions != null`.
 
-## 管理範囲外
+## Out of scope
+
+Installing / configuring individual Extensions (`firebase ext:install ...`) is done via the Firebase CLI.
+
+<details><summary>Ja</summary>
 
 各 Extension の install / config (`firebase ext:install ...`) は Firebase CLI で実施する。
+
+</details>

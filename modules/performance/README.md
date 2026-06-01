@@ -1,10 +1,16 @@
 # modules/performance
 
+Placeholder submodule for enabling the Firebase Performance Monitoring API.
+
+<details><summary>Ja</summary>
+
 Firebase Performance Monitoring API 有効化のためのプレースホルダ submodule。
 
-## 作成するリソース
+</details>
 
-なし。本機能の API のみを有効化するためのアタッチポイント。
+## Resources created
+
+None. An attach point that only enables the relevant API.
 
 ## Inputs
 
@@ -14,16 +20,22 @@ Firebase Performance Monitoring API 有効化のためのプレースホルダ s
 
 ## Outputs
 
-なし。
+None.
 
-## 関連 API
+## Related APIs
 
-- `firebaseperformance.googleapis.com` (root module で自動有効化)
+- `firebaseperformance.googleapis.com` (auto-enabled by the root module)
 
-## ルートモジュールでの呼び出し条件
+## Invocation condition
 
-`var.performance != null` の場合に呼び出される。
+Called when `var.performance != null`.
 
-## 管理範囲外
+## Out of scope
+
+Custom traces / instrumentation are set up via the SDK.
+
+<details><summary>Ja</summary>
 
 カスタムトレース / 計測設定は SDK 側で行う。
+
+</details>

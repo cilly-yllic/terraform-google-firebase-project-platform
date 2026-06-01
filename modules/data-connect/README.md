@@ -1,14 +1,20 @@
 # modules/data-connect
 
+Submodule that creates a Firebase Data Connect service and, optionally, a Cloud SQL instance + database.
+
+<details><summary>Ja</summary>
+
 Firebase Data Connect service と、任意で Cloud SQL instance / database を作成する submodule。
 
-## 作成するリソース
+</details>
 
-| Resource | Provider | 役割 |
+## Resources created
+
+| Resource | Provider | Role |
 |----------|----------|------|
 | `google_firebase_data_connect_service.this` | `google-beta` | Data Connect service |
-| `google_sql_database_instance.this` | `google` | (任意) Cloud SQL instance (`cloud_sql != null` の場合のみ) |
-| `google_sql_database.this` | `google` | (任意) Cloud SQL database |
+| `google_sql_database_instance.this` | `google` | (optional) Cloud SQL instance (only when `cloud_sql != null`) |
+| `google_sql_database.this` | `google` | (optional) Cloud SQL database |
 
 ## Inputs
 
@@ -16,33 +22,33 @@ Firebase Data Connect service と、任意で Cloud SQL instance / database を�
 |------|------|---------|-------------|
 | `project` | `string` | (required) | GCP project ID |
 | `location` | `string` | (required) | Data Connect / Cloud SQL location |
-| `service_id` | `string` | `"{project}-dataconnect"` (空文字フォールバック) | Data Connect service ID |
-| `cloud_sql` | `object \| null` | `null` | Cloud SQL 設定。`null` なら SQL 関連リソースは作成しない |
+| `service_id` | `string` | `"{project}-dataconnect"` (empty falls back) | Data Connect service ID |
+| `cloud_sql` | `object \| null` | `null` | Cloud SQL config. `null` skips SQL resources. |
 
-`cloud_sql` のフィールド:
+Fields of `cloud_sql`:
 
 | Field | Default | Description |
 |-------|---------|-------------|
-| `instance_id` | `"{project}-fdc"` | Cloud SQL instance 名 |
-| `database` | `project` | database 名 |
+| `instance_id` | `"{project}-fdc"` | Cloud SQL instance name |
+| `database` | `project` | database name |
 | `tier` | `"db-f1-micro"` | machine tier |
-| `database_version` | `"POSTGRES_15"` | PostgreSQL バージョン |
-| `deletion_protection` | `false` | instance の delete 保護 |
+| `database_version` | `"POSTGRES_15"` | PostgreSQL version |
+| `deletion_protection` | `false` | Instance delete protection |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
 | `name` | Data Connect service resource name |
-| `cloud_sql_instance_name` | Cloud SQL instance 名 (なければ `null`) |
+| `cloud_sql_instance_name` | Cloud SQL instance name (`null` if not created) |
 | `cloud_sql_connection_name` | Cloud SQL connection name |
-| `cloud_sql_database` | database 名 |
+| `cloud_sql_database` | database name |
 
-## 関連 API
+## Related APIs
 
 - `firebasedataconnect.googleapis.com`
 - `sqladmin.googleapis.com`
 
-## ルートモジュールでの呼び出し条件
+## Invocation condition
 
-`var.data_connect != null` の場合に呼び出される。
+Called when `var.data_connect != null`.

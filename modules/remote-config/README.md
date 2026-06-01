@@ -1,10 +1,16 @@
 # modules/remote-config
 
+Placeholder submodule for enabling the Firebase Remote Config API.
+
+<details><summary>Ja</summary>
+
 Firebase Remote Config API 有効化のためのプレースホルダ submodule。
 
-## 作成するリソース
+</details>
 
-なし。本機能の API のみを有効化するためのアタッチポイント。
+## Resources created
+
+None. An attach point that only enables the relevant API.
 
 ## Inputs
 
@@ -14,16 +20,22 @@ Firebase Remote Config API 有効化のためのプレースホルダ submodule�
 
 ## Outputs
 
-なし。
+None.
 
-## 関連 API
+## Related APIs
 
-- `firebaseremoteconfig.googleapis.com` (root module で自動有効化)
+- `firebaseremoteconfig.googleapis.com` (auto-enabled by the root module)
 
-## ルートモジュールでの呼び出し条件
+## Invocation condition
 
-`var.remote_config != null` の場合に呼び出される。
+Called when `var.remote_config != null`.
 
-## 管理範囲外
+## Out of scope
+
+Remote Config parameters / conditions / A/B test settings are managed via Console / Firebase CLI / Admin SDK.
+
+<details><summary>Ja</summary>
 
 Remote Config パラメータ / Condition / A/B test 設定はすべて Console / Firebase CLI / Admin SDK で管理する。
+
+</details>

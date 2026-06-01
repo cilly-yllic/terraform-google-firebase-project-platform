@@ -1,10 +1,16 @@
 # modules/app-check
 
+Placeholder submodule for enabling the Firebase App Check API.
+
+<details><summary>Ja</summary>
+
 Firebase App Check API 有効化のためのプレースホルダ submodule。
 
-## 作成するリソース
+</details>
 
-なし。本機能の API のみを有効化するためのアタッチポイント。
+## Resources created
+
+None. An attach point that only enables the relevant API.
 
 ## Inputs
 
@@ -14,19 +20,28 @@ Firebase App Check API 有効化のためのプレースホルダ submodule。
 
 ## Outputs
 
-なし。
+None.
 
-## 関連 API
+## Related APIs
 
-- `firebaseappcheck.googleapis.com` (root module で自動有効化)
+- `firebaseappcheck.googleapis.com` (auto-enabled by the root module)
 
-## ルートモジュールでの呼び出し条件
+## Invocation condition
 
-`var.app_check != null` の場合に呼び出される。
+Called when `var.app_check != null`.
 
-## 管理範囲外
+## Out of scope
+
+- App Check provider registration (reCAPTCHA / DeviceCheck / Play Integrity)
+- Per-service App Check token enforce settings
+
+Manage these via Console or the App Check Admin SDK.
+
+<details><summary>Ja</summary>
 
 - App Check provider (reCAPTCHA / DeviceCheck / Play Integrity) の登録
 - App Check token enforce 設定 (per service)
 
 これらは Console または App Check Admin SDK で管理する。
+
+</details>

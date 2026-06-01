@@ -1,10 +1,16 @@
 # modules/eventarc
 
+Placeholder submodule for enabling the Eventarc API.
+
+<details><summary>Ja</summary>
+
 Eventarc API 有効化のためのプレースホルダ submodule。
 
-## 作成するリソース
+</details>
 
-なし。Trigger 自体は本モジュールでは作成しない。
+## Resources created
+
+None. Triggers are not created by this module.
 
 ## Inputs
 
@@ -15,16 +21,22 @@ Eventarc API 有効化のためのプレースホルダ submodule。
 
 ## Outputs
 
-なし。
+None.
 
-## 関連 API
+## Related APIs
 
-- `eventarc.googleapis.com` (root module で自動有効化)
+- `eventarc.googleapis.com` (auto-enabled by the root module)
 
-## ルートモジュールでの呼び出し条件
+## Invocation condition
 
-`var.eventarc != null` の場合に呼び出される。
+Called when `var.eventarc != null`.
 
-## 設計意図
+## Design intent
+
+Eventarc triggers are tightly coupled to their targets (Cloud Run / Cloud Functions), so they are expected to be managed alongside the target in a separate Terraform stack.
+
+<details><summary>Ja</summary>
 
 Eventarc trigger は target (Cloud Run / Cloud Function) と密結合するため、target 側の Terraform stack で管理する想定。
+
+</details>
